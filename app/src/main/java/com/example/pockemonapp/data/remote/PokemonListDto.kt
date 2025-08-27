@@ -1,6 +1,6 @@
 package com.example.pockemonapp.data.remote
 
-data class PokemonDto(
+data class PokemonListDto(
     val count: Int,
     val next: String?,
     val previous: String?,

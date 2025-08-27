@@ -1,7 +1,6 @@
 package com.example.pockemonapp.data.local
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
+
 
 
 //@Database(

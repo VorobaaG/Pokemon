@@ -2,7 +2,7 @@ package com.example.pockemonapp.data.remote
 
 import com.google.gson.annotations.SerializedName
 
-data class Pokemon(
+data class PokemonDto(
    val id:Int,
    val name: String,
    val sprites:SpritesPokemonDto

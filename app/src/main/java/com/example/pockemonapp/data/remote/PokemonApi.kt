@@ -1,10 +1,17 @@
 package com.example.pockemonapp.data.remote
 
 import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
 
-interface PockemonApi{
+interface PokemonApi{
 
-    @GET("pokemon?offset=20&limit=20")
-    suspend fun getListPockemons(): PockemonDto
+    @GET("pokemon")
+    suspend fun getListPokemon(
+        @Query("limit") limit:Int,
+        @Query("offset")offset:Int): PokemonListDto
+
+    @GET("pokemon/{name}")
+    suspend fun getPokemonByName(@Path("name") name:String):PokemonDto
 
 }
