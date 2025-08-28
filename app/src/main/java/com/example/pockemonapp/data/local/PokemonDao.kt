@@ -17,7 +17,7 @@ interface PokemonDao {
    @Insert(onConflict = OnConflictStrategy.REPLACE)
    suspend fun insertAll(pokemons:List<PokemonEntity>)
 
-   @Query("SELECT * FROM PokemonEntity")
+   @Query("SELECT * FROM PokemonEntity ORDER BY id")
    fun pagingSource(): PagingSource<Int, PokemonEntity>
 
    @Query("DELETE FROM PokemonEntity")
@@ -26,11 +26,42 @@ interface PokemonDao {
    @Query("SELECT * FROM PokemonEntity ORDER BY name")
    fun sortNyNamePagingSource():PagingSource<Int,PokemonEntity>
 
+   @Query("SELECT PokemonEntity.id, PokemonEntity.name, PokemonEntity.urlImage  FROM PokemonEntity " +
+           "INNER JOIN StatsPokemonEntity ON PokemonEntity.id = StatsPokemonEntity.idOwnerPokemon " +
+           "ORDER BY StatsPokemonEntity.attack")
+   fun sortByAttackIncreasePagingSource(): PagingSource<Int, PokemonEntity>
+
+   @Query("SELECT PokemonEntity.id, PokemonEntity.name, PokemonEntity.urlImage  FROM PokemonEntity " +
+           "INNER JOIN StatsPokemonEntity ON PokemonEntity.id = StatsPokemonEntity.idOwnerPokemon " +
+           "ORDER BY StatsPokemonEntity.hp")
+   fun sortByHpIncreasePagingSource(): PagingSource<Int, PokemonEntity>
+
+   @Query("SELECT PokemonEntity.id, PokemonEntity.name, PokemonEntity.urlImage  FROM PokemonEntity " +
+           "INNER JOIN StatsPokemonEntity ON PokemonEntity.id = StatsPokemonEntity.idOwnerPokemon " +
+           "ORDER BY StatsPokemonEntity.defence")
+   fun sortByDefenceIncreasePagingSource(): PagingSource<Int, PokemonEntity>
+
+   @Query("SELECT PokemonEntity.id, PokemonEntity.name, PokemonEntity.urlImage  FROM PokemonEntity " +
+           "INNER JOIN StatsPokemonEntity ON PokemonEntity.id = StatsPokemonEntity.idOwnerPokemon " +
+           "ORDER BY StatsPokemonEntity.attack DESC")
+   fun sortByAttackDecreasePagingSource(): PagingSource<Int, PokemonEntity>
+
+   @Query("SELECT PokemonEntity.id, PokemonEntity.name, PokemonEntity.urlImage  FROM PokemonEntity " +
+           "INNER JOIN StatsPokemonEntity ON PokemonEntity.id = StatsPokemonEntity.idOwnerPokemon " +
+           "ORDER BY StatsPokemonEntity.hp DESC")
+   fun sortByHpDecreasePagingSource(): PagingSource<Int, PokemonEntity>
+
+   @Query("SELECT PokemonEntity.id, PokemonEntity.name, PokemonEntity.urlImage  FROM PokemonEntity " +
+           "INNER JOIN StatsPokemonEntity ON PokemonEntity.id = StatsPokemonEntity.idOwnerPokemon " +
+           "ORDER BY StatsPokemonEntity.defence DESC")
+   fun sortByDefenceDecreasePagingSource(): PagingSource<Int, PokemonEntity>
+
+
    @Delete
    fun delete(pokemon: PokemonEntity)
 
    @Transaction
    @Query("SELECT * FROM PokemonEntity WHERE id = :idOwnerPokemon")
-   suspend fun getUsersAndLibraries(idOwnerPokemon:Int): PokemonAndStats
+   suspend fun getUsersAndLibraries(idOwnerPokemon:Int): PokemonAndStats?
 
 }

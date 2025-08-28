@@ -38,8 +38,12 @@ class HomeBodyViewModel(
             when(currentSort.value){
                 TypeSort.NONE -> db.pokemonDao.pagingSource()
                 TypeSort.NAME -> db.pokemonDao.sortNyNamePagingSource()
-                TypeSort.DAMAGE -> TODO()
-                TypeSort.HP -> TODO()
+                TypeSort.DAMAGE_INCREASE -> db.pokemonDao.sortByAttackIncreasePagingSource()
+                TypeSort.DAMAGE_DECREASE -> db.pokemonDao.sortByAttackDecreasePagingSource()
+                TypeSort.HP_INCREASE -> db.pokemonDao.sortByHpIncreasePagingSource()
+                TypeSort.HP_DECREASE -> db.pokemonDao.sortByHpDecreasePagingSource()
+                TypeSort.DEFENCE_INCREASE -> db.pokemonDao.sortByDefenceIncreasePagingSource()
+                TypeSort.DEFENCE_DECREASE -> db.pokemonDao.sortByDefenceDecreasePagingSource()
             }
 
         })
@@ -49,7 +53,7 @@ class HomeBodyViewModel(
     val pokemonPagingFlow = pager
         .flow
         .map {pokemonEntity-> pokemonEntity.map{
-            db.pokemonDao.getUsersAndLibraries(it.id).toPokemon() }
+            db.pokemonDao.getUsersAndLibraries(it.id)?.toPokemon()?:it.toPokemon() }
         }
         .cachedIn(viewModelScope)
 

@@ -41,7 +41,6 @@ class PokemonRemoteMediator(
        // }
     }
 
-    private  val PREFETCH_DISTANCE = 40
     private  var offset = 0
 
     override suspend fun load(
@@ -50,7 +49,7 @@ class PokemonRemoteMediator(
     ): MediatorResult {
        return try {
            val loadKey = when(loadType){
-               LoadType.REFRESH -> offset
+               LoadType.REFRESH -> 0
                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                LoadType.APPEND -> {
                    val lastItem = state.lastItemOrNull()
@@ -85,6 +84,7 @@ class PokemonRemoteMediator(
 
                db.withTransaction {
                    if(loadType == LoadType.REFRESH){
+                        offset = state.config.pageSize
                         db.pokemonDao.clearAll()
                         db.statsPokemonDao.clearAll()
                    }

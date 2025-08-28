@@ -16,25 +16,6 @@ val appModule = module{
 
     viewModelOf(::HomeBodyViewModel)
 
-    single<Pager<Int,PokemonEntity>> {(sort: TypeSort)->
-        val db = get<PokemonDB>()
-        Pager(
-            config = PagingConfig(
-                pageSize = 40,
-                initialLoadSize = 80,
-                prefetchDistance = 40
-            ),
-            remoteMediator = PokemonRemoteMediator(service= get(),db=get()),
-            pagingSourceFactory = {
-                when(sort){
-                    TypeSort.NONE -> db.pokemonDao.pagingSource()
-                    TypeSort.NAME -> db.pokemonDao.sortNyNamePagingSource()
-                    TypeSort.DAMAGE -> TODO()
-                    TypeSort.HP -> TODO()
-                }
 
-            }
-        )
-    }
 
 }

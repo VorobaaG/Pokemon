@@ -3,6 +3,7 @@ package com.example.pockemonapp.app.ui.screen
 import com.example.pockemonapp.R
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.OverscrollEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -15,16 +16,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +63,10 @@ fun HomeScreen(
     val lazyGridState = rememberLazyGridState()
 
 
+
+
+
+
         LaunchedEffect(key1 = pagingPokemon.loadState) {
             if (pagingPokemon.loadState.refresh is LoadState.Error) {
                 Toast.makeText(
@@ -66,22 +76,17 @@ fun HomeScreen(
                 ).show()
             }
         }
-        if (pagingPokemon.loadState.refresh is LoadState.Loading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(
-
-                )
-            }
-        } else {
             HomeBody(
                 pokemons = pagingPokemon,
                 gridState = lazyGridState,
                 onClickFilter = {
                     vm.currentSort.value = it
+
                     pagingPokemon.refresh()},
                 modifier = homeModifier,
-                currentSort = vm.currentSort.value)
-        }
+                currentSort = vm.currentSort.value,
+                loadState = pagingPokemon.loadState.refresh)
+
 
 }
 
@@ -91,14 +96,19 @@ fun HomeBody(
     gridState: LazyGridState,
     onClickFilter:(TypeSort)->Unit,
     currentSort:TypeSort =TypeSort.NONE,
+    loadState: LoadState,
     modifier: Modifier
 ){
+
+
     Box(modifier = Modifier.then(modifier).fillMaxSize()) {
 
   Column {
       Box(modifier = Modifier.height(40.dp).padding(start =5.dp,end=5.dp).fillMaxWidth()){
-          Row(modifier = Modifier.fillMaxWidth()) {
-              TypeSort.entries.forEach {
+          LazyRow(
+              modifier = Modifier.fillMaxWidth(),
+              ) {
+              items(TypeSort.entries) {
                   Text(
                       modifier = Modifier.clickable { onClickFilter(it)}
                           .padding(start = 8.dp)
@@ -112,22 +122,27 @@ fun HomeBody(
 
           }
       }
-
-
-      LazyVerticalGrid(
-          columns = GridCells.Adaptive(minSize = 120.dp),
-          state = gridState,
-          modifier = Modifier.padding(start = 8.dp,end=8.dp)
-      ) {
-          items(
-              pokemons.itemCount,
-              key = { it }
-          ) {   pokemons[it]?.let { PokemonItem(it) }
-
+      if (loadState is LoadState.Loading) {
+          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              CircularProgressIndicator(                )
           }
-          item {
-              if (pokemons.loadState.append is LoadState.Loading) {
-                  CircularProgressIndicator()
+      }else {
+          LazyVerticalGrid(
+              columns = GridCells.Adaptive(minSize = 120.dp),
+              state = gridState,
+              modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+          ) {
+              items(
+                  pokemons.itemCount,
+                  key = { it }
+              ) {
+                  pokemons[it]?.let { PokemonItem(it) }
+
+              }
+              item {
+                  if (pokemons.loadState.append is LoadState.Loading) {
+                      CircularProgressIndicator()
+                  }
               }
           }
       }
@@ -175,6 +190,7 @@ fun previewPokemonItem(){
         gridState = gridState,
         onClickFilter = {},
         pokemons =pokemons,
-        modifier = Modifier.padding(top=20.dp)
+        modifier = Modifier.padding(top=20.dp),
+        loadState = LoadState.Loading
     )
 }
