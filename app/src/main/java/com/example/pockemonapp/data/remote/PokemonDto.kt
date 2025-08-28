@@ -15,6 +15,7 @@ data class SpritesPokemonDto(
 )
 
 data class StatsPokemonDto(
+    @SerializedName("base_stat")
    val baseStat:Int,
    val effort:Int,
    val stat: StatPokemonDto

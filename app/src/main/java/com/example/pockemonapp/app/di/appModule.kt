@@ -5,7 +5,8 @@ import androidx.paging.PagingConfig
 import com.example.pockemonapp.app.ui.viewModel.HomeBodyViewModel
 import com.example.pockemonapp.data.PokemonRemoteMediator
 import com.example.pockemonapp.data.local.PokemonDB
-import org.koin.core.module.dsl.viewModel
+import com.example.pockemonapp.data.local.PokemonEntity
+import com.example.pockemonapp.domain.model.TypeSort
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -15,7 +16,7 @@ val appModule = module{
 
     viewModelOf(::HomeBodyViewModel)
 
-    single {
+    single<Pager<Int,PokemonEntity>> {(sort: TypeSort)->
         val db = get<PokemonDB>()
         Pager(
             config = PagingConfig(
@@ -24,7 +25,15 @@ val appModule = module{
                 prefetchDistance = 40
             ),
             remoteMediator = PokemonRemoteMediator(service= get(),db=get()),
-            pagingSourceFactory = {db.dao.pagingSource()}
+            pagingSourceFactory = {
+                when(sort){
+                    TypeSort.NONE -> db.pokemonDao.pagingSource()
+                    TypeSort.NAME -> db.pokemonDao.sortNyNamePagingSource()
+                    TypeSort.DAMAGE -> TODO()
+                    TypeSort.HP -> TODO()
+                }
+
+            }
         )
     }
 

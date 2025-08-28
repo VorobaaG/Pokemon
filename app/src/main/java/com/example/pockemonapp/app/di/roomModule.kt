@@ -1,9 +1,7 @@
 package com.example.pockemonapp.app.di
 
-import androidx.room.Database
 import androidx.room.Room
 import com.example.pockemonapp.data.local.PokemonDB
-import com.example.pockemonapp.data.local.PokemonDao
 import org.koin.dsl.module
 
 val roomModule = module{
@@ -17,7 +15,8 @@ val roomModule = module{
             .build()
     }
 
-    single{get<PokemonDB>().dao}
+    single{get<PokemonDB>().pokemonDao}
+    single{get<PokemonDB>().statsPokemonDao}
 
 
 

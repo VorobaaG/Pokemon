@@ -7,6 +7,7 @@ import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.example.pockemonapp.data.local.PokemonDB
 import com.example.pockemonapp.data.local.PokemonEntity
+import com.example.pockemonapp.data.local.StatsPokemonEntity
 import com.example.pockemonapp.data.mappers.toPokemonEntity
 import com.example.pockemonapp.data.remote.PokemonApi
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
 class PokemonRemoteMediator(
@@ -25,8 +27,18 @@ class PokemonRemoteMediator(
 ): RemoteMediator<Int, PokemonEntity>() {
 
     override suspend fun initialize(): InitializeAction {
-        return super.initialize()
-
+        val cacheTimeout = TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)
+        //return if (System.currentTimeMillis() - db.lastUpdated() <= cacheTimeout)
+       // {
+            // Cached data is up-to-date, so there is no need to re-fetch
+            // from the network.
+         return    InitializeAction.LAUNCH_INITIAL_REFRESH
+       // } else {
+            // Need to refresh cached data from network; returning
+            // LAUNCH_INITIAL_REFRESH here will also block RemoteMediator's
+            // APPEND and PREPEND from running until REFRESH succeeds.
+       //     InitializeAction.LAUNCH_INITIAL_REFRESH
+       // }
     }
 
     private  val PREFETCH_DISTANCE = 40
@@ -57,23 +69,33 @@ class PokemonRemoteMediator(
                val pokemon = coroutineScope {
                    response.results?.map {
                        async(SupervisorJob()) {
-                           service.getPokemonByName(it.name!!).toPokemonEntity()
+                           service.getPokemonByName(it.name!!)
                        }
                    }?.awaitAll()
                }
 
+               val pokemonEntity = pokemon?.map { it.toPokemonEntity() }
+               val stats = pokemonEntity?.mapIndexed { index, pokemonEn ->   StatsPokemonEntity(
+                   idOwnerPokemon = pokemonEn.id,
+                   hp= pokemon[index].stats[0].baseStat,
+                   attack = pokemon[index].stats[1].baseStat,
+                   defence = pokemon[index].stats[1].baseStat,
 
-           db.withTransaction {
-               if(loadType == LoadType.REFRESH){
-                    db.dao.clearAll()
+               ) }
+
+               db.withTransaction {
+                   if(loadType == LoadType.REFRESH){
+                        db.pokemonDao.clearAll()
+                        db.statsPokemonDao.clearAll()
+                   }
+                   if(pokemonEntity!=null) db.pokemonDao.insertAll(pokemonEntity)
+                   if(stats !=null) db.statsPokemonDao.insertAll(stats)
                }
-               if(pokemon!=null) db.dao.insertAll(pokemon)
-           }
 
            MediatorResult.Success(
                endOfPaginationReached = (response.results==null)
            )
-           }
+       }
        }catch(e: IOException) {
            MediatorResult.Error(e)
        } catch(e: HttpException) {

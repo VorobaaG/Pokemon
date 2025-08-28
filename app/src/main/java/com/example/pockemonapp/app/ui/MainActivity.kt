@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             PockemonAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen()
+                    HomeScreen(homeModifier = Modifier.padding(innerPadding))
                 }
             }
         }
