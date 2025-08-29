@@ -5,11 +5,11 @@ import androidx.room.RoomDatabase
 
 
 @Database(
-    entities = [PokemonEntity::class, StatsPokemonEntity::class,DbState::class],
-    version = 1
+    entities = [PokemonEntity::class,TypePokemonEntity::class],
+    version = 1,
+    exportSchema = false
 )
 
 abstract class PokemonDB: RoomDatabase(){
     abstract val pokemonDao: PokemonDao
-    abstract  val statsPokemonDao: StatsPokemonDao
 }

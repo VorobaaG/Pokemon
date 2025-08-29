@@ -8,8 +8,10 @@ import androidx.room.withTransaction
 import com.example.pockemonapp.data.local.PokemonDB
 import com.example.pockemonapp.data.local.PokemonEntity
 import com.example.pockemonapp.data.local.StatsPokemonEntity
+import com.example.pockemonapp.data.local.TypePokemonEntity
 import com.example.pockemonapp.data.mappers.toPokemonEntity
 import com.example.pockemonapp.data.remote.PokemonApi
+import com.example.pockemonapp.data.remote.TypePokemonDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -74,22 +76,21 @@ class PokemonRemoteMediator(
                }
 
                val pokemonEntity = pokemon?.map { it.toPokemonEntity() }
-               val stats = pokemonEntity?.mapIndexed { index, pokemonEn ->   StatsPokemonEntity(
-                   idOwnerPokemon = pokemonEn.id,
-                   hp= pokemon[index].stats[0].baseStat,
-                   attack = pokemon[index].stats[1].baseStat,
-                   defence = pokemon[index].stats[1].baseStat,
+               val type = pokemon?.mapIndexed { index, pokemonDto ->
+                   pokemonDto.types.map { Pair(pokemonDto.id,it.type.name) }
+               }?.flatten()
+               val typeEntity = type?.map { TypePokemonEntity(idOwnerPokemon = it.first,name = it.second)}
 
-               ) }
 
                db.withTransaction {
                    if(loadType == LoadType.REFRESH){
                         offset = state.config.pageSize
                         db.pokemonDao.clearAll()
-                        db.statsPokemonDao.clearAll()
+                        db.pokemonDao.clearAllTypeEntity()
                    }
-                   if(pokemonEntity!=null) db.pokemonDao.insertAll(pokemonEntity)
-                   if(stats !=null) db.statsPokemonDao.insertAll(stats)
+                   if(pokemonEntity!=null) { db.pokemonDao.insertAll(pokemonEntity)}
+                   if(typeEntity!=null) db.pokemonDao.insertAllTypeEntity(typeEntity)
+
                }
 
            MediatorResult.Success(

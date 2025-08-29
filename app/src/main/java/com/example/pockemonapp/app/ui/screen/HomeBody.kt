@@ -49,6 +49,7 @@ import coil3.compose.SubcomposeAsyncImage
 import com.example.pockemonapp.app.ui.viewModel.HomeBodyViewModel
 import com.example.pockemonapp.data.local.PokemonEntity
 import com.example.pockemonapp.domain.model.Pokemon
+import com.example.pockemonapp.domain.model.TypeFilter
 import com.example.pockemonapp.domain.model.TypeSort
 import kotlinx.coroutines.flow.flowOf
 import org.koin.androidx.compose.koinViewModel
@@ -79,13 +80,21 @@ fun HomeScreen(
             HomeBody(
                 pokemons = pagingPokemon,
                 gridState = lazyGridState,
+                currentFilter = vm.currentType.value,
                 onClickFilter = {
-                    vm.currentSort.value = it
-
-                    pagingPokemon.refresh()},
+                    vm.currentType.value=it
+                    pagingPokemon.refresh()
+                    },
                 modifier = homeModifier,
                 currentSort = vm.currentSort.value,
-                loadState = pagingPokemon.loadState.refresh)
+                loadState = pagingPokemon.loadState.refresh,
+                onClickSort = {
+                    vm.currentSort.value = it
+                    pagingPokemon.refresh()
+                              },
+
+
+                )
 
 
 }
@@ -94,8 +103,10 @@ fun HomeScreen(
 fun HomeBody(
     pokemons: LazyPagingItems<Pokemon>,
     gridState: LazyGridState,
-    onClickFilter:(TypeSort)->Unit,
+    onClickSort:(TypeSort)->Unit,
     currentSort:TypeSort =TypeSort.NONE,
+    currentFilter:TypeFilter = TypeFilter.NONE,
+    onClickFilter:(TypeFilter)->Unit,
     loadState: LoadState,
     modifier: Modifier
 ){
@@ -110,13 +121,32 @@ fun HomeBody(
               ) {
               items(TypeSort.entries) {
                   Text(
-                      modifier = Modifier.clickable { onClickFilter(it)}
+                      modifier = Modifier.clickable { onClickSort(it)}
                           .padding(start = 8.dp)
                           .background(if(currentSort==it) MaterialTheme.colorScheme.primaryContainer
                           else MaterialTheme.colorScheme.background)
                           .clip(MaterialTheme.shapes.small)
                           .padding(start = 5.dp,end=5.dp,top=5.dp, bottom = 5.dp)
                           ,
+                      text = "$it")
+              }
+
+          }
+      }
+
+      Box(modifier = Modifier.height(40.dp).padding(start =5.dp,end=5.dp).fillMaxWidth()){
+          LazyRow(
+              modifier = Modifier.fillMaxWidth(),
+          ) {
+              items(TypeFilter.entries) {
+                  Text(
+                      modifier = Modifier.clickable { onClickFilter(it)}
+                          .padding(start = 8.dp)
+                          .background(if(currentFilter==it) MaterialTheme.colorScheme.primaryContainer
+                          else MaterialTheme.colorScheme.background)
+                          .clip(MaterialTheme.shapes.small)
+                          .padding(start = 5.dp,end=5.dp,top=5.dp, bottom = 5.dp)
+                      ,
                       text = "$it")
               }
 
@@ -191,6 +221,9 @@ fun previewPokemonItem(){
         onClickFilter = {},
         pokemons =pokemons,
         modifier = Modifier.padding(top=20.dp),
-        loadState = LoadState.Loading
+        loadState = LoadState.Loading,
+        currentSort = TypeSort.NONE,
+        onClickSort = {},
+        currentFilter = TypeFilter.NONE
     )
 }

@@ -16,7 +16,6 @@ val roomModule = module{
     }
 
     single{get<PokemonDB>().pokemonDao}
-    single{get<PokemonDB>().statsPokemonDao}
 
 
 

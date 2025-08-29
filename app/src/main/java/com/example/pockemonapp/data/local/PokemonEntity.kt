@@ -11,13 +11,11 @@ data class PokemonEntity (
     val id:Int,
     val name:String,
     val urlImage: String,
+    @Embedded
+    val stat:StatsPokemonEntity
 )
 
-@Entity
 data class StatsPokemonEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int =0,
-    val idOwnerPokemon:Int, //id для связи сStatsPokemonEntity
     val hp:Int =0,
     val attack:Int=0,
     val defence:Int=0,
@@ -26,14 +24,23 @@ data class StatsPokemonEntity(
     val speed:Int =0
 )
 
-data class PokemonAndStats(
+@Entity
+data class TypePokemonEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id:Int=0,
+    val idOwnerPokemon:Int,
+    val name:String
+)
+
+data class PokemonWithType(
     @Embedded val pokemon:PokemonEntity,
     @Relation(
         parentColumn = "id",
         entityColumn = "idOwnerPokemon"
     )
-    val stats:StatsPokemonEntity
+    val type: TypePokemonEntity
 )
+
 
 @Entity
 data class DbState(

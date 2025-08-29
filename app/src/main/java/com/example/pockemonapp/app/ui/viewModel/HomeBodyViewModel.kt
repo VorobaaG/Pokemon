@@ -7,15 +7,20 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import androidx.paging.map
 import com.example.pockemonapp.data.PokemonRemoteMediator
 import com.example.pockemonapp.data.local.PokemonDB
 import com.example.pockemonapp.data.local.PokemonEntity
 import com.example.pockemonapp.data.mappers.toPokemon
+import com.example.pockemonapp.data.mappers.toTypeFilter
+import com.example.pockemonapp.data.mappers.toTypePokemon
 import com.example.pockemonapp.data.remote.PokemonApi
 import com.example.pockemonapp.domain.model.Pokemon
+import com.example.pockemonapp.domain.model.TypeFilter
 import com.example.pockemonapp.domain.model.TypeSort
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalPagingApi::class)
@@ -27,13 +32,17 @@ class HomeBodyViewModel(
 
 
     val currentSort = mutableStateOf(TypeSort.NONE)
+    val currentType = mutableStateOf(TypeFilter.NONE)
+
     private val pager: Pager<Int, PokemonEntity> =  Pager(
         config = PagingConfig(
             pageSize = 40,
             initialLoadSize = 80,
             prefetchDistance = 40
         ),
-        remoteMediator = PokemonRemoteMediator(service= service,db=db),
+        remoteMediator =
+            if(currentType.value == TypeFilter.NONE) PokemonRemoteMediator(service= service,db=db)
+                         else PokemonRemoteMediator(service= service,db=db) ,
         pagingSourceFactory = {
             when(currentSort.value){
                 TypeSort.NONE -> db.pokemonDao.pagingSource()
@@ -50,10 +59,22 @@ class HomeBodyViewModel(
 
 
 
+
+
     val pokemonPagingFlow = pager
         .flow
-        .map {pokemonEntity-> pokemonEntity.map{
-            db.pokemonDao.getUsersAndLibraries(it.id)?.toPokemon()?:it.toPokemon() }
+        .map {pokemonEntity->
+            if(currentType.value==TypeFilter.NONE) {pokemonEntity.map { it.toPokemon() }}
+            else{
+                pokemonEntity
+                    .filter {
+                        val a =db.pokemonDao.getTypeById(it.id)
+                        a?.forEach {name-> if( currentType.value.name.lowercase() == name) return@filter true }
+                        return@filter false
+                    }.map {
+                        it.toPokemon()
+                    }
+            }
         }
         .cachedIn(viewModelScope)
 
