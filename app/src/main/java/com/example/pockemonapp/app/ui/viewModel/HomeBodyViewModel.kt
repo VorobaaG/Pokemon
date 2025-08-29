@@ -18,6 +18,7 @@ import com.example.pockemonapp.domain.model.Pokemon
 import com.example.pockemonapp.domain.model.TypeFilter
 import com.example.pockemonapp.domain.model.TypeSort
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 
@@ -60,9 +61,9 @@ class HomeBodyViewModel(
 
     val pokemonPagingFlow = pager
         .flow
+        .debounce(200)
         .map {pokemonEntity->
             pokemonEntity.map { it.toPokemon() }
-
         }
         .cachedIn(viewModelScope)
 

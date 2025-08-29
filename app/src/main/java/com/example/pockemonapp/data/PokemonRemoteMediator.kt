@@ -121,11 +121,6 @@ class PokemonRemoteMediator(
                }
                }
 
-
-
-
-
-
        }catch(e: IOException) {
            MediatorResult.Error(e)
        } catch(e: HttpException) {

@@ -11,7 +11,6 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 
-@OptIn(ExperimentalPagingApi::class)
 val appModule = module{
 
     viewModelOf(::HomeBodyViewModel)
