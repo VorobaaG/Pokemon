@@ -1,10 +1,12 @@
 package com.example.pockemonapp.data
 
+import androidx.compose.runtime.MutableState
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import com.example.pockemonapp.app.ui.viewModel.HomeBodyViewModel
 import com.example.pockemonapp.data.local.PokemonDB
 import com.example.pockemonapp.data.local.PokemonEntity
 import com.example.pockemonapp.data.local.StatsPokemonEntity
@@ -12,6 +14,7 @@ import com.example.pockemonapp.data.local.TypePokemonEntity
 import com.example.pockemonapp.data.mappers.toPokemonEntity
 import com.example.pockemonapp.data.remote.PokemonApi
 import com.example.pockemonapp.data.remote.TypePokemonDto
+import com.example.pockemonapp.domain.model.TypeFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -25,7 +28,8 @@ import java.util.concurrent.TimeUnit
 @OptIn(ExperimentalPagingApi::class)
 class PokemonRemoteMediator(
     private val service: PokemonApi,
-    private val db: PokemonDB
+    private val db: PokemonDB,
+    private val type: MutableState<TypeFilter>
 ): RemoteMediator<Int, PokemonEntity>() {
 
     override suspend fun initialize(): InitializeAction {
@@ -65,38 +69,63 @@ class PokemonRemoteMediator(
            }
 
            withContext(Dispatchers.IO) {
-               val response = service.getListPokemon(limit = state.config.pageSize, loadKey)
-               offset += state.config.pageSize
-               val pokemon = coroutineScope {
-                   response.results?.map {
-                       async(SupervisorJob()) {
-                           service.getPokemonByName(it.name!!)
-                       }
-                   }?.awaitAll()
-               }
+               val pokemonEntity: List<PokemonEntity>?
 
-               val pokemonEntity = pokemon?.map { it.toPokemonEntity() }
-               val type = pokemon?.mapIndexed { index, pokemonDto ->
-                   pokemonDto.types.map { Pair(pokemonDto.id,it.type.name) }
-               }?.flatten()
-               val typeEntity = type?.map { TypePokemonEntity(idOwnerPokemon = it.first,name = it.second)}
-
-
-               db.withTransaction {
-                   if(loadType == LoadType.REFRESH){
-                        offset = state.config.pageSize
-                        db.pokemonDao.clearAll()
-                        db.pokemonDao.clearAllTypeEntity()
+               if(type.value==TypeFilter.NONE) {
+                   val response = service.getListPokemon(limit = state.config.pageSize, loadKey)
+                   offset += state.config.pageSize
+                   val pokemon = coroutineScope {
+                       response.results?.map {
+                           async(SupervisorJob()) {
+                               service.getPokemonByName(it.name!!)
+                           }
+                       }?.awaitAll()
                    }
-                   if(pokemonEntity!=null) { db.pokemonDao.insertAll(pokemonEntity)}
-                   if(typeEntity!=null) db.pokemonDao.insertAllTypeEntity(typeEntity)
 
+                   pokemonEntity = pokemon?.map { it.toPokemonEntity() }
+
+                   db.withTransaction {
+                       if(loadType == LoadType.REFRESH){
+                           offset = state.config.pageSize
+                           db.pokemonDao.clearAll()
+                       }
+                       if(pokemonEntity!=null) db.pokemonDao.insertAll(pokemonEntity)
+                   }
+
+                   MediatorResult.Success(
+                       endOfPaginationReached = (response.results==null)
+                   )
+
+               }else {
+                   val response = service.getPokemonByType(type.value.ordinal)
+
+                   val pokemon = coroutineScope {
+                       response.pokemon.map {
+                           async(SupervisorJob()) {
+                               service.getPokemonByName(it.pokemon.name!!)
+                           }
+                       }.awaitAll()
+                   }
+
+                   pokemonEntity = pokemon.map { it.toPokemonEntity() }
+
+                   if (loadType == LoadType.REFRESH) {
+                       offset = state.config.pageSize
+                       db.pokemonDao.clearAll()
+                   }
+                   db.pokemonDao.insertAll(pokemonEntity)
+
+                   MediatorResult.Success(
+                       endOfPaginationReached = true
+                   )
+               }
                }
 
-           MediatorResult.Success(
-               endOfPaginationReached = (response.results==null)
-           )
-       }
+
+
+
+
+
        }catch(e: IOException) {
            MediatorResult.Error(e)
        } catch(e: HttpException) {

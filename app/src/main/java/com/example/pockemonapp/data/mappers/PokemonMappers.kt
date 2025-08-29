@@ -1,5 +1,6 @@
 package com.example.pockemonapp.data.mappers
 
+import com.example.pockemonapp.data.local.MyTypePokemonEntity
 import com.example.pockemonapp.data.local.PokemonEntity
 import com.example.pockemonapp.data.local.StatsPokemonEntity
 import com.example.pockemonapp.data.local.TypePokemonEntity
@@ -22,6 +23,9 @@ fun PokemonDto.toPokemonEntity(): PokemonEntity{
             specialAttack = this.stats[3].baseStat,
             specialDefence = this.stats[4].baseStat,
             speed = this.stats[5].baseStat
+        ),
+        type = MyTypePokemonEntity(
+            type =this.types[0].type.name
         )
     )
 }
@@ -41,16 +45,3 @@ fun PokemonEntity.toPokemon():Pokemon{
     )
 }
 
-fun TypePokemonEntity.toTypePokemon(): TypePokemon {
-    return TypePokemon(entries.firstOrNull{it.name.equals(this.name,ignoreCase = true)}?: TypeFilter.NONE)
-}
-
-fun TypePokemonEntity.toTypeFilter(): TypeFilter {
-    return entries.firstOrNull{it.name.equals(this.name,ignoreCase = true)}?: TypeFilter.NONE
-}
-
-
-
-fun String.ToTypePokemon(): TypePokemon {
-    return TypePokemon(entries.firstOrNull{it.name.equals(this,ignoreCase = true)}?: TypeFilter.NONE)
-}

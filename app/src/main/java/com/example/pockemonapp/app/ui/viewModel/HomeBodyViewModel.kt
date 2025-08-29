@@ -13,8 +13,6 @@ import com.example.pockemonapp.data.PokemonRemoteMediator
 import com.example.pockemonapp.data.local.PokemonDB
 import com.example.pockemonapp.data.local.PokemonEntity
 import com.example.pockemonapp.data.mappers.toPokemon
-import com.example.pockemonapp.data.mappers.toTypeFilter
-import com.example.pockemonapp.data.mappers.toTypePokemon
 import com.example.pockemonapp.data.remote.PokemonApi
 import com.example.pockemonapp.domain.model.Pokemon
 import com.example.pockemonapp.domain.model.TypeFilter
@@ -41,8 +39,7 @@ class HomeBodyViewModel(
             prefetchDistance = 40
         ),
         remoteMediator =
-            if(currentType.value == TypeFilter.NONE) PokemonRemoteMediator(service= service,db=db)
-                         else PokemonRemoteMediator(service= service,db=db) ,
+             PokemonRemoteMediator(service= service,db=db, type = currentType),
         pagingSourceFactory = {
             when(currentSort.value){
                 TypeSort.NONE -> db.pokemonDao.pagingSource()
@@ -64,17 +61,8 @@ class HomeBodyViewModel(
     val pokemonPagingFlow = pager
         .flow
         .map {pokemonEntity->
-            if(currentType.value==TypeFilter.NONE) {pokemonEntity.map { it.toPokemon() }}
-            else{
-                pokemonEntity
-                    .filter {
-                        val a =db.pokemonDao.getTypeById(it.id)
-                        a?.forEach {name-> if( currentType.value.name.lowercase() == name) return@filter true }
-                        return@filter false
-                    }.map {
-                        it.toPokemon()
-                    }
-            }
+            pokemonEntity.map { it.toPokemon() }
+
         }
         .cachedIn(viewModelScope)
 

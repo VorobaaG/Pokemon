@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,6 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -41,6 +43,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
+import androidx.paging.LoadStates
+import androidx.paging.LoadType
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -123,9 +127,9 @@ fun HomeBody(
                   Text(
                       modifier = Modifier.clickable { onClickSort(it)}
                           .padding(start = 8.dp)
+                          .clip(MaterialTheme.shapes.small)
                           .background(if(currentSort==it) MaterialTheme.colorScheme.primaryContainer
                           else MaterialTheme.colorScheme.background)
-                          .clip(MaterialTheme.shapes.small)
                           .padding(start = 5.dp,end=5.dp,top=5.dp, bottom = 5.dp)
                           ,
                       text = "$it")
@@ -142,6 +146,7 @@ fun HomeBody(
                   Text(
                       modifier = Modifier.clickable { onClickFilter(it)}
                           .padding(start = 8.dp)
+                          .clip(MaterialTheme.shapes.small)
                           .background(if(currentFilter==it) MaterialTheme.colorScheme.primaryContainer
                           else MaterialTheme.colorScheme.background)
                           .clip(MaterialTheme.shapes.small)
@@ -152,13 +157,13 @@ fun HomeBody(
 
           }
       }
-      if (loadState is LoadState.Loading) {
-          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-              CircularProgressIndicator(                )
-          }
-      }else {
+//      if (loadState is LoadState.Loading) {
+//          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//              CircularProgressIndicator(                )
+//          }
+//      }else {
           LazyVerticalGrid(
-              columns = GridCells.Adaptive(minSize = 120.dp),
+              columns = GridCells.Adaptive(minSize = 180.dp),
               state = gridState,
               modifier = Modifier.padding(start = 8.dp, end = 8.dp)
           ) {
@@ -177,20 +182,27 @@ fun HomeBody(
           }
       }
   }
-  }
+//  }
 }
 
 @Composable
 fun PokemonItem(
 pokemon:Pokemon
 ){
-    Column(modifier = Modifier.padding(top= 8.dp)){
+    Column(modifier = Modifier.padding(bottom = 16.dp, end = 16.dp)
+        .clip(MaterialTheme.shapes.large)
+        .shadow(elevation = 12.dp )
+        .background(MaterialTheme.colorScheme.primaryContainer)
+        .padding(top = 8.dp)
+
+
+    ){
         Text(pokemon.name, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
         SubcomposeAsyncImage(
             model = pokemon.urlImage,
             contentDescription = pokemon.name,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.height(100.dp),
+            modifier = Modifier.height(160.dp),
             loading = {CircularProgressIndicator()},
             error = { Image(
                 painter = painterResource(R.drawable.baseline_broken_image_24),
@@ -199,10 +211,10 @@ pokemon:Pokemon
 
                 ) }
         )
-        Column {
-            Text(text = "dmg:${pokemon.statsPokemon.damage}")
+        Column(modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)) {
+            Text(text = "damage:${pokemon.statsPokemon.damage}")
             Text(text = "hp:${pokemon.statsPokemon.hp}")
-            Text(text = "def:${pokemon.statsPokemon.defence}")
+            Text(text = "defence:${pokemon.statsPokemon.defence}")
         }
     }
 }

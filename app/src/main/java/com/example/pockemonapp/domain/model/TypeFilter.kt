@@ -2,28 +2,28 @@ package com.example.pockemonapp.domain.model
 
 import com.example.pockemonapp.domain.model.TypeFilter.entries
 
-enum class TypeFilter(name:String) {
-    NONE("none"),
-    NORMAL("normal"),
-    FIGHTING("fighting"),
-    FLYING("flying"),
-    POISON("poison"),
-    GROUND("ground"),
-    ROCK("rock"),
-    BUG("bug"),
-    GHOST("ghost"),
-    STEEL("steel"),
-    FIRE("fire"),
-    WATER("water"),
-    GLASS("glass"),
-    ELECTRIC("electric"),
-    PSYCHIC("psychic"),
-    ICE("ice"),
-    DRAGON("dragon"),
-    DARK("dark"),
-    FAIRY("fairy"),
-    STELLAR("stellar"),
-    UNKNOWN("unknown")
+enum class TypeFilter(id:Int) {
+    NONE(0),
+    NORMAL(1),
+    FIGHTING(2),
+    FLYING(3),
+    POISON(4),
+    GROUND(5),
+    ROCK(6),
+    BUG(7),
+    GHOST(8),
+    STEEL(9),
+    FIRE(10),
+    WATER(11),
+    GLASS(12),
+    ELECTRIC(13),
+    PSYCHIC(14),
+    ICE(15),
+    DRAGON(16),
+    DARK(17),
+    FAIRY(18),
+    STELLAR(19),
+    UNKNOWN(20)
 
 }
 

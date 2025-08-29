@@ -12,7 +12,9 @@ data class PokemonEntity (
     val name:String,
     val urlImage: String,
     @Embedded
-    val stat:StatsPokemonEntity
+    val stat:StatsPokemonEntity,
+    @Embedded
+    val type:MyTypePokemonEntity
 )
 
 data class StatsPokemonEntity(
@@ -22,6 +24,10 @@ data class StatsPokemonEntity(
     val specialAttack:Int=0,
     val specialDefence:Int=0,
     val speed:Int =0
+)
+
+data class MyTypePokemonEntity(
+    val type:String
 )
 
 @Entity

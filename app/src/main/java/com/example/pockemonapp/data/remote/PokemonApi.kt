@@ -15,7 +15,7 @@ interface PokemonApi{
     suspend fun getPokemonByName(@Path("name") name:String):PokemonDto
 
     @GET("type/{id}")
-    suspend fun getPokemonByType(@Path("id") id:Int):List<ResultPokemonDto>
+    suspend fun getPokemonByType(@Path("id") id:Int):TypeDto
 
 
 }
