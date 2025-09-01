@@ -73,6 +73,7 @@ class PokemonRemoteMediator(
 
                if(type.contains(TypeFilter.NONE)) {
                    val response = service.getListPokemon(limit = state.config.pageSize, loadKey)
+
                    offset += state.config.pageSize
                    val pokemon = coroutineScope {
                        response.results?.map {

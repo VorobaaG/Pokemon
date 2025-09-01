@@ -23,6 +23,7 @@ import com.example.pockemonapp.domain.model.TypeSort
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -51,14 +52,20 @@ class HomeBodyViewModel(
     val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
+    val SEARCH_ALL_POKEMONS = 1500
 
     val resultSearchPokemon: StateFlow<List<String>> = searchQuery
         .debounce(400)
         .distinctUntilChanged()
         .flatMapLatest {
-            flowOf(
-                db.pokemonDao.findByNameStartingWith(it) ?: listOf()
-            )
+            flow {
+                val a = coroutineScope {
+                    service.getListPokemon(SEARCH_ALL_POKEMONS, 0)
+                }
+                emit (a.results?.filter{ pokemon -> pokemon.name?.startsWith(prefix = it,ignoreCase = true) == true }
+                    ?.map { it.name!! }?: listOf())
+
+            }
         }
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
 
