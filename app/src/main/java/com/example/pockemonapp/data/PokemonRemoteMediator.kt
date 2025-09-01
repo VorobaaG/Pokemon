@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 class PokemonRemoteMediator(
     private val service: PokemonApi,
     private val db: PokemonDB,
-    private val type: MutableState<TypeFilter>
+    private val type: List<TypeFilter>
 ): RemoteMediator<Int, PokemonEntity>() {
 
     override suspend fun initialize(): InitializeAction {
@@ -71,7 +71,7 @@ class PokemonRemoteMediator(
            withContext(Dispatchers.IO) {
                val pokemonEntity: List<PokemonEntity>?
 
-               if(type.value==TypeFilter.NONE) {
+               if(type.contains(TypeFilter.NONE)) {
                    val response = service.getListPokemon(limit = state.config.pageSize, loadKey)
                    offset += state.config.pageSize
                    val pokemon = coroutineScope {
@@ -97,23 +97,29 @@ class PokemonRemoteMediator(
                    )
 
                }else {
-                   val response = service.getPokemonByType(type.value.ordinal)
+                   val response = type.map {
+                       service.getPokemonByType(it.ordinal)
+                   }
+                  val res =  response
+                      .map{it.pokemon.map { it.pokemon.name }.toSet()}
+                      .reduceOrNull{acc,element -> acc.intersect(element)}
+                      ?.toList()
 
                    val pokemon = coroutineScope {
-                       response.pokemon.map {
+                       res?.map {
                            async(SupervisorJob()) {
-                               service.getPokemonByName(it.pokemon.name!!)
+                               service.getPokemonByName(it!!)
                            }
-                       }.awaitAll()
+                       }?.awaitAll()
                    }
 
-                   pokemonEntity = pokemon.map { it.toPokemonEntity() }
+                   pokemonEntity = pokemon?.map { it.toPokemonEntity() }
 
                    if (loadType == LoadType.REFRESH) {
                        offset = state.config.pageSize
                        db.pokemonDao.clearAll()
                    }
-                   db.pokemonDao.insertAll(pokemonEntity)
+                   if(pokemonEntity!=null )db.pokemonDao.insertAll(pokemonEntity)
 
                    MediatorResult.Success(
                        endOfPaginationReached = true

@@ -11,23 +11,14 @@ import androidx.room.Transaction
 @Dao
 interface PokemonDao {
 
-   @Insert
-   fun insert(pokemon: PokemonEntity)
-
    @Insert(onConflict = OnConflictStrategy.REPLACE)
    suspend fun insertAll(pokemons:List<PokemonEntity>)
-
-   @Insert(onConflict = OnConflictStrategy.REPLACE)
-   suspend fun insertAllTypeEntity(typeEntity:List<TypePokemonEntity>)
 
    @Query("SELECT * FROM PokemonEntity ORDER BY id")
    fun pagingSource(): PagingSource<Int, PokemonEntity>
 
    @Query("DELETE FROM PokemonEntity")
    suspend fun clearAll()
-
-   @Query("DELETE FROM TypePokemonEntity")
-   suspend fun clearAllTypeEntity()
 
    @Query("SELECT * FROM PokemonEntity ORDER BY name")
    fun sortNyNamePagingSource():PagingSource<Int,PokemonEntity>
@@ -53,14 +44,11 @@ interface PokemonDao {
    @Query("SELECT TypePokemonEntity.name FROM TypePokemonEntity WHERE TypePokemonEntity.idOwnerPokemon = :id")
    suspend fun getTypeById(id:Int):List<String>?
 
-   @Transaction
-   @Query("SELECT * FROM PokemonEntity WHERE id = :idPokemon")
-   fun getPokemonWithType(idPokemon:Int): List<PokemonWithType>
-
-
    @Delete
    fun delete(pokemon: PokemonEntity)
 
+   @Query("SELECT name FROM PokemonEntity WHERE name LIKE :search || '%' ")
+   suspend fun findByNameStartingWith(search:String) : List<String>?
 
 
 }
