@@ -1,6 +1,7 @@
 package com.example.pockemonapp.app.ui.viewModel
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,9 +11,13 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.filter
 import androidx.paging.map
-import com.example.pockemonapp.data.PokemonRemoteMediator
+import com.example.pockemonapp.data.PokemonRemoteMediatorFullList
+import com.example.pockemonapp.data.PokemonRemoteMediatorWithFilter
+import com.example.pockemonapp.data.PokemonRemoteMediatorWithoutFilter
+import com.example.pockemonapp.data.TypeMediatorSort
 import com.example.pockemonapp.data.local.PokemonDB
 import com.example.pockemonapp.data.local.PokemonEntity
 import com.example.pockemonapp.data.mappers.toPokemon
@@ -75,15 +80,24 @@ class HomeBodyViewModel(
         }
     }
 
+    fun startSearch(query: String){
+        setSearchQuery(query = query)
+        _typeMediatorSort.update { TypeMediatorSort.FULL }
 
+
+    }
+
+    val _typeMediatorSort = MutableStateFlow(TypeMediatorSort.NONE)
+    private val typeMediatorSort = _typeMediatorSort.asStateFlow()
     private val _currentSort = MutableStateFlow(TypeSort.NONE)
     val currentSort = _currentSort.asStateFlow()
     private val _currentFilter = MutableStateFlow(listOf(TypeFilter.NONE))
     val currentFilter = _currentFilter.asStateFlow()
 
     val pokemonPagingFlow = combine(
-        _currentSort, _currentFilter
-    ) { sort, type ->
+        currentSort, typeMediatorSort
+    ){
+            sort,type ->
         sort to type
     }
         .flatMapLatest { (sort, type) ->
@@ -94,7 +108,12 @@ class HomeBodyViewModel(
                     prefetchDistance = 40
                 ),
                 remoteMediator =
-                    PokemonRemoteMediator(service = service, db = db, type = type),
+                    when(type){
+                        TypeMediatorSort.NONE -> PokemonRemoteMediatorWithoutFilter(service = service, db = db)
+                        TypeMediatorSort.TYPE -> PokemonRemoteMediatorWithFilter(service = service, db =db, typeFilter =  currentFilter.value)
+                        TypeMediatorSort.FULL -> PokemonRemoteMediatorFullList(service = service, db = db, searchPokemon = searchQuery.value)
+                    } ,
+
                 pagingSourceFactory = {
                     when (sort) {
                         TypeSort.NONE -> db.pokemonDao.pagingSource()
@@ -129,10 +148,15 @@ class HomeBodyViewModel(
 
         val filter = currentFilter.value.toMutableList()
 
+
         if(filter.contains(TypeFilter.NONE) && type !=TypeFilter.NONE){
+            _typeMediatorSort.update { TypeMediatorSort.TYPE }
             filter.remove(TypeFilter.NONE)
         }
-        else if (type ==TypeFilter.NONE) return listOf(TypeFilter.NONE)
+        else if (type ==TypeFilter.NONE){
+            _typeMediatorSort.update { TypeMediatorSort.NONE }
+            return listOf(TypeFilter.NONE)
+        }
 
         if(filter.contains(type)) {
             filter.remove(type)

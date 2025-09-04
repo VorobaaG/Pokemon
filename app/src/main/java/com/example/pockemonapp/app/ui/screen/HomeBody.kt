@@ -74,6 +74,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
 import com.example.pockemonapp.app.ui.viewModel.HomeBodyViewModel
+import com.example.pockemonapp.data.TypeMediatorSort
 import com.example.pockemonapp.data.local.PokemonEntity
 import com.example.pockemonapp.domain.model.Pokemon
 import com.example.pockemonapp.domain.model.TypeFilter
@@ -113,10 +114,10 @@ fun HomeScreen(
 
                 query = vm.searchQuery.collectAsStateWithLifecycle().value,
                 onQueryChange = {vm.setSearchQuery(it)},
-                onSearch = {},
-                onResultClick = {
-                    selectQuery->
-                    vm._searchQuery.update{selectQuery}},
+                onSearch = {vm.startSearch(it)
+                           pagingPokemon.refresh()},
+                onResultClick = {vm.startSearch(it)
+                                pagingPokemon.refresh()},
                 searchResults = vm.resultSearchPokemon.collectAsStateWithLifecycle().value
 
 
@@ -166,8 +167,7 @@ fun HomeBody(
                           .clip(MaterialTheme.shapes.small)
                           .background(if(currentSort==it) MaterialTheme.colorScheme.primaryContainer
                           else MaterialTheme.colorScheme.background)
-                          .padding(start = 5.dp,end=5.dp,top=5.dp, bottom = 5.dp)
-                          ,
+                          .padding(start = 5.dp,end=5.dp,top=5.dp, bottom = 5.dp),
                       text = "$it")
               }
 
@@ -186,8 +186,7 @@ fun HomeBody(
                           .background(if(currentFilter.contains(it)) MaterialTheme.colorScheme.primaryContainer
                           else MaterialTheme.colorScheme.background)
                           .clip(MaterialTheme.shapes.small)
-                          .padding(start = 5.dp,end=5.dp,top=5.dp, bottom = 5.dp)
-                      ,
+                          .padding(start = 5.dp,end=5.dp,top=5.dp, bottom = 5.dp),
                       text = "$it")
               }
 
@@ -262,7 +261,9 @@ fun PokemonSearchBar(
                 items(count = searchResults.size) { index ->
                     val resultText = searchResults[index]
                     ListItem(
-                        headlineContent = { Text(resultText) },
+                        headlineContent = {
+                                Text(resultText)
+                            },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier
                             .clickable {
