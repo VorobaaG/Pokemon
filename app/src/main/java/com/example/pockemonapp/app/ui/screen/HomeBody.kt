@@ -37,6 +37,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
@@ -53,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -73,6 +75,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
+import com.example.pockemonapp.app.ui.theme.PockemonAppTheme
 import com.example.pockemonapp.app.ui.viewModel.HomeBodyViewModel
 import com.example.pockemonapp.data.TypeMediatorSort
 import com.example.pockemonapp.data.local.PokemonEntity
@@ -85,7 +88,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
-    vm:HomeBodyViewModel= koinViewModel(),
+    vm:HomeBodyViewModel,
     homeModifier: Modifier
 ){
     val pagingPokemon = vm.pokemonPagingFlow.collectAsLazyPagingItems()
@@ -153,7 +156,7 @@ fun HomeBody(
           onSearch = onSearch,
           searchResults = searchResults,
           onResultClick = onResultClick,
-
+          modifier = Modifier.padding(bottom = 8.dp)
       )
 
       Box(modifier = Modifier.height(40.dp).padding(start =5.dp,end=5.dp).fillMaxWidth()){
@@ -323,20 +326,25 @@ fun previewPokemonItem(){
 
     val pok = PagingData.from(List(20){Pokemon()})
     val pokemons = flowOf(pok).collectAsLazyPagingItems()
-    HomeBody(
-        gridState = gridState,
-        onClickFilter = {},
-        pokemons =pokemons,
-        modifier = Modifier.padding(top=20.dp),
-        loadState = LoadState.NotLoading(endOfPaginationReached = true),
-        currentSort = TypeSort.NONE,
-        onClickSort = {},
-        currentFilter = listOf(TypeFilter.NONE,TypeFilter.NORMAL),
-        query = "",
-        onSearch = {},
-        onResultClick = {},
-        onQueryChange = {},
-        searchResults = listOf()
+    PockemonAppTheme {
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
-    )
+            HomeBody(
+                gridState = gridState,
+                onClickFilter = {},
+                pokemons = pokemons,
+                modifier = Modifier.padding(innerPadding),
+                loadState = LoadState.NotLoading(endOfPaginationReached = true),
+                currentSort = TypeSort.NONE,
+                onClickSort = {},
+                currentFilter = listOf(TypeFilter.NONE, TypeFilter.NORMAL),
+                query = "",
+                onSearch = {},
+                onResultClick = {},
+                onQueryChange = {},
+                searchResults = listOf()
+
+            )
+        }
+    }
 }

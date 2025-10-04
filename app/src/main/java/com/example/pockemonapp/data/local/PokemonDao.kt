@@ -42,13 +42,13 @@ interface PokemonDao {
    fun sortByDefenceDecreasePagingSource(): PagingSource<Int, PokemonEntity>
 
    @Query("SELECT TypePokemonEntity.name FROM TypePokemonEntity WHERE TypePokemonEntity.idOwnerPokemon = :id")
-   suspend fun getTypeById(id:Int):List<String>?
+   suspend fun getTypeById(id:Int):List<String>
 
    @Delete
    fun delete(pokemon: PokemonEntity)
 
    @Query("SELECT name FROM PokemonEntity WHERE name LIKE :search || '%' ")
-   suspend fun findByNameStartingWith(search:String) : List<String>?
+   suspend fun findByNameStartingWith(search:String) : List<String>
 
 
 }

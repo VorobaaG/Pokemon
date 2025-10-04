@@ -1,8 +1,5 @@
 package com.example.pockemonapp.app.ui.viewModel
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +22,7 @@ import com.example.pockemonapp.data.remote.PokemonApi
 import com.example.pockemonapp.domain.model.Pokemon
 import com.example.pockemonapp.domain.model.TypeFilter
 import com.example.pockemonapp.domain.model.TypeSort
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -45,12 +43,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
-class HomeBodyViewModel(
+@HiltViewModel
+class HomeBodyViewModel @Inject constructor(
     private val service:PokemonApi,
     private val db: PokemonDB,
-
 ) :ViewModel() {
 
 
